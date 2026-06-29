@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>InfraLens</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+:root{
+  /* light baby-pink theme */
+  --space:#F5E8F5; --panel:#FFFFFF; --surface:#F0E4F7; --border:#E2C8E8;
+  --violet:#7C3AED; --pink:#C026A0; --sky:#0369A1; --mint:#047857;
+  --gold:#B45309; --coral:#BE123C; --red:#BE123C;
+  --text:#2D1B45; --text2:#7C5C8A;
+  --input-bg:#F9F0FC; --input-border:#D8B4F0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--space);color:var(--text);overflow:hidden}
+.app{display:flex;height:100vh;width:100vw}
+
+/* ---------------- LEFT PANEL ---------------- */
+.left{width:300px;min-width:300px;height:100%;background:var(--panel);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto}
+.topbar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:9px}
+.hex{width:22px;height:22px;background:linear-gradient(135deg,#7C3AED,#F9A8D4,#BAE6FD);
+  clip-path:polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brand .name{font-size:17px;font-weight:700;color:var(--violet)}
+.badge{font-size:10px;color:var(--violet);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 8px;white-space:nowrap}
+.section{padding:14px}
+
+/* feed-the-cloud instruction card (replaces the old dashed box) */
+.feed{background:radial-gradient(ellipse at center,#F5E8F5 0%,#0D0520 100%);border:1px solid var(--border);
+  border-radius:12px;padding:14px;text-align:center}
+.feed .big{font-size:13px;color:var(--violet);font-weight:600}
+.feed .arrow{font-size:20px;color:#7C3AED;margin:6px 0;animation:nudge 1.6s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(6px)}}
+.feed .hint{font-size:11px;color:var(--text2)}
+.feed .browse{color:var(--sky);cursor:pointer;text-decoration:underline}
+.feed .fmt{font-size:10px;color:#64748B;margin-top:8px;line-height:1.5}
+
+/* loaded file chips */
+.files{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.chip{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:7px 9px;font-size:11.5px;color:var(--mint);animation:pop .35s ease}
+.chip .ic{width:8px;height:8px;border-radius:2px;flex:none}
+.chip .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip .x{color:var(--text2);cursor:pointer;font-size:14px;line-height:1}
+.chip .x:hover{color:var(--coral)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+
+label.fld{display:block;font-size:11px;color:var(--text2);margin:14px 0 6px}
+textarea{
+  width:100%;
+  min-height:64px;
+  resize:vertical;
+  background:#FFFFFF;
+  border:2px solid #D8B4F0;
+  color:var(--text);
+  border-radius:10px;
+  padding:12px;
+  font-family:inherit;
+  font-size:13px;
+  transition:.25s;
+}
+textarea:focus{
+  outline:none;
+  border-color:#A855F7;
+  box-shadow:0 0 0 4px rgba(168,85,247,.15);
+}
+textarea::placeholder{color:var(--text2);opacity:.7}
+
+.demo-btn{display:block;width:100%;background:none;border:none;color:#6B7280;font-size:11px;cursor:pointer;margin:10px 0 6px;font-family:inherit}
+.demo-btn:hover{color:var(--text2)}
+.inspect{width:100%;height:42px;border:none;border-radius:10px;color:#fff;font-weight:600;font-size:13px;cursor:pointer;
+  font-family:inherit;background:linear-gradient(135deg,#7C3AED 0%,#A855F7 50%,#EC4899 100%);transition:.2s}
+.inspect:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 25px rgba(124,58,237,.4)}
+.inspect:disabled{opacity:.35;cursor:not-allowed}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+
+/* pipeline */
+.pipe{display:none;margin-top:18px}
+.pipe h4{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin:14px 0 8px}
+.agent-row{display:flex;align-items:center;gap:9px;padding:5px 0;font-size:12px;color:var(--text)}
+.dot{width:10px;height:10px;border-radius:50%;background:#2D1B5E;flex:none;transition:.2s}
+.dot.running{animation:pulse 0.8s ease-in-out infinite}
+.dot.done{animation:bounce .4s ease}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.4)}}
+@keyframes bounce{0%{transform:scale(1.4)}100%{transform:scale(1)}}
+.agent-row .t{margin-left:auto;font-size:10px;opacity:.85}
+
+/* speed cards */
+.speed{display:none;gap:8px;margin-top:18px}
+.speed .card{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.speed .card.fast{box-shadow:0 0 15px rgba(167,243,208,.2)}
+.speed .lbl{font-size:10px;color:var(--text2)}
+.speed .val{font-size:22px;font-weight:700;margin:3px 0}
+.speed .val.mint{color:var(--mint)} .speed .val.coral{color:var(--coral)}
+.speed .sub{font-size:9px;color:#64748B}
+.faster{display:none;text-align:center;color:var(--violet);font-weight:600;font-size:13px;margin-top:8px}
+
+/* ---------------- RIGHT PANEL ---------------- */
+.right{flex:1;height:100%;position:relative;background:var(--space);overflow:hidden;cursor:pointer}
+#cloud-canvas{position:absolute;inset:0}
+.dragring{position:absolute;top:50%;left:50%;width:340px;height:340px;transform:translate(-50%,-50%) scale(.7);
+  border:2px dashed var(--violet);border-radius:50%;opacity:0;transition:.25s;pointer-events:none;
+  box-shadow:0 0 40px rgba(196,181,253,.25)}
+.right.dragover .dragring{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.hero-text{position:absolute;left:0;right:0;bottom:12%;text-align:center;pointer-events:none;transition:.3s}
+.hero-text h1{font-size:22px;font-weight:600;color:var(--violet)}
+.hero-text .sub{font-size:13px;color:var(--text2);margin-top:6px}
+.right.dragover .hero-text h1{color:var(--mint)}
+.pills{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.pill{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);background:rgb(218, 204, 245);
+  border:1px solid var(--border);border-radius:20px;padding:5px 11px}
+.pill i{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+/* analysis running bars */
+.bars{display:none;position:absolute;inset:0;flex-direction:column;justify-content:center;gap:16px;padding:0 16%}
+.bar-wrap .bn{font-size:12px;margin-bottom:5px;color:var(--text)}
+.bar{height:8px;border-radius:6px;background:var(--surface);overflow:hidden}
+.bar > span{display:block;height:100%;width:40%;border-radius:6px;
+  background:linear-gradient(90deg,transparent,currentColor,transparent);animation:shimmer 1.1s linear infinite}
+@keyframes shimmer{0%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
+
+.flash{position:absolute;inset:0;background:#7C3AED;opacity:0;pointer-events:none}
+
+/* results */
+.results{display:none;position:absolute;inset:0;overflow-y:auto;padding:24px 28px 60px;cursor:default}
+.results.show{animation:fadeUp .6s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+#mini-cloud{position:fixed;top:8px;right:8px;width:120px;height:120px;z-index:5;pointer-events:none}
+.exec{background:var(--panel);border-left:4px solid #7C3AED;border-radius:10px;padding:16px;margin-bottom:18px;line-height:1.55;font-size:14px}
+.exec h3{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:8px}
+.lens-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+.lens{position:relative;overflow:visible;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:13px;cursor:pointer;transition:.2s;border-top:3px solid var(--c)}
+.lens:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.lens .nm{font-size:13px;font-weight:600;color:var(--c)}
+.lens .cnt{font-size:10px;color:var(--text2);margin:4px 0 8px}
+.lens .prev{font-size:12px;color:var(--text);opacity:.85;line-height:1.4}
+.findings{
+    display:none;
+    position:absolute;
+    top:105%;
+    left:0;
+    width:420px;
+    max-height:350px;
+    overflow:auto;
+    background:white;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+    box-shadow:0 18px 40px rgba(0,0,0,.18);
+    z-index:100;
+}
+.findings table{width:100%;border-collapse:collapse;font-size:11.5px}
+.findings td{padding:6px 5px;border-bottom:1px solid var(--border);vertical-align:top}
+.findings td.r{color:var(--text2);white-space:nowrap}
+.pri{display:inline-block;font-size:10px;padding:2px 8px;border-radius:12px;border:1px solid;white-space:nowrap}
+.pri.Now{color:var(--coral);border-color:var(--coral)}
+.pri.Before{color:var(--gold);border-color:var(--gold)}
+.pri.Future{color:var(--sky);border-color:var(--sky)}
+
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px}
+.card h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.cross{border:1px solid transparent;background:
+  linear-gradient(var(--panel),var(--panel)) padding-box,
+  linear-gradient(135deg,#7C3AED,#F9A8D4,#BAE6FD) border-box}
+.cross h3{color:var(--violet)}
+.cross .item{font-size:13px;margin-bottom:8px;line-height:1.45}
+.cross .item b{color:var(--pink)}
+.well{border-left:4px solid var(--mint)} .well h3{color:var(--mint)}
+.well li{list-style:none;font-size:13px;padding:3px 0}
+.well li:before{content:"✓ ";color:var(--mint)}
+.plan h3{color:var(--violet)}
+.tier{margin-bottom:10px}
+.tier .th{font-size:11px;font-weight:600;margin-bottom:5px}
+.tier.now .th{color:var(--coral)} .tier.bl .th{color:var(--gold)} .tier.fu .th{color:var(--sky)}
+.tier li{font-size:12.5px;margin-left:18px;padding:2px 0;line-height:1.4}
+.stride{border:1px solid var(--border)}
+.stride summary{cursor:pointer;color:var(--red);font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.stride .item{font-size:12.5px;margin-top:10px;line-height:1.45}
+.stride .tag{display:inline-block;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:1px 6px;font-size:10px;margin-right:6px}
+.exports{display:flex;gap:10px;margin-top:8px}
+.exports button{flex:1;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px;font-size:12px;cursor:pointer;font-family:inherit;transition:.2s}
+.exports button:hover{border-color:#7C3AED}
+.fallback-note{font-size:10px;color:#64748B;margin-top:10px;text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT -->
+  <div class="left">
+    <div class="topbar">
+      <div class="brand"><div class="hex"></div><div class="name">InfraLens</div></div>
+      <div class="badge">Gemma 4 on Cerebras</div>
+    </div>
+    <div class="section">
+      <input type="file" id="file" accept=".json,.tfstate" multiple hidden />
+      <div class="files" id="files"></div>
+
+      <label class="fld">What does your app do? (optional)</label>
+      <textarea id="ctx" placeholder="e.g. SaaS fintech app handling card payments and customer PII"></textarea>
+
+      <button class="demo-btn" id="demoBtn">Load demo data</button>
+      <button class="inspect" id="inspectBtn" disabled>Inspect Infrastructure</button>
+
+      <!-- pipeline -->
+      <div class="pipe" id="pipe">
+        <h4>Parallel Inspection</h4>
+        <div id="agentRows"></div>
+        <h4>Synthesis</h4>
+        <div class="agent-row"><span class="dot" id="dot-synth"></span>Synthesis + STRIDE overlay<span class="t" id="t-synth"></span></div>
+      </div>
+
+      <!-- speed -->
+      <div class="speed" id="speed">
+        <div class="card fast"><div class="lbl">InfraLens</div><div class="val mint" id="speedFast">–</div><div class="sub">on Cerebras</div></div>
+        <div class="card"><div class="lbl">GPU Baseline</div><div class="val coral" id="speedSlow">–</div><div class="sub">estimated</div></div>
+      </div>
+      <div class="faster" id="faster"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right" id="rightPanel">
+    <canvas id="cloud-canvas"></canvas>
+    <div class="dragring"></div>
+    <div class="hero-text" id="hero">
+      <h1 id="heroTitle">Point it at your cloud</h1>
+      <div class="sub" id="heroSub">Drag your tfstate or asset inventory onto the cloud — or click it</div>
+      <div class="pills">
+        <div class="pill"><i style="background:#BAE6FD"></i>Six agents in parallel</div>
+        <div class="pill"><i style="background:#A7F3D0"></i>GCP native</div>
+        <div class="pill"><i style="background:#C4B5FD"></i>131K token context</div>
+      </div>
+    </div>
+
+    <div class="bars" id="bars"></div>
+    <div class="flash" id="flash"></div>
+
+    <div class="results" id="results">
+      <canvas id="mini-cloud"></canvas>
+      <div class="exec"><h3>Executive Summary</h3><div id="execText"></div></div>
+      <div class="lens-grid" id="lensGrid"></div>
+      <div class="card cross" id="crossCard"><h3>Cross-Lens Surface</h3><div id="crossBody"></div></div>
+      <div class="card well"><h3>What You Built Well</h3><ul id="wellList"></ul></div>
+      <div class="card plan"><h3>Action Plan</h3><div id="planBody"></div></div>
+      <details class="card stride"><summary>STRIDE Surface</summary><div id="strideBody"></div></details>
+      <div class="exports">
+        <button id="copyBtn">Copy JSON</button>
+        <button id="csvBtn">Download CSV</button>
+        <button id="printBtn">Print Report</button>
+      </div>
+      <div class="fallback-note" id="fallbackNote"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ====================== AGENT CONFIG ======================
+const AGENTS = [
+  {key:'scalability', name:'Scalability Outlook', color:'#0284C7'},
+  {key:'cost',        name:'Cost Outlook',        color:'#CA8A04'},
+  {key:'resilience',  name:'Resilience Outlook',  color:'#059669'},
+  {key:'observability',name:'Observability Gaps', color:'#DB2777'},
+  {key:'sdlc',        name:'SDLC Readiness',      color:'#7C3AED'},
+];
+// deeper pastels so particles read on a light pink background
+const PALETTE = ['#A78BFA','#F472B6','#38BDF8','#34D399'];
+const NODE_COLORS = [0x8B5CF6,0xEC4899,0x0EA5E9,0x10B981,0xF59E0B];
+
+// ====================== THREE.JS CLOUD ======================
+let renderer, scene, camera, cloudGroup, fileGroup;
+let dissolving=false, dissolveStart=0, pulse=0;
+let targetRotX=0, targetRotY=0;            // parallax targets
+let miniRenderer, miniScene, miniCamera, miniCloud;
+
+function buildCloud(count, scale){
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count*3);
+  const col = new Float32Array(count*3);
+  const centers = [{x:0,y:0,z:0,r:2.5},{x:1.6,y:.3,z:0,r:1.8},{x:-1.5,y:-.2,z:.4,r:2.0}];
+  const c = new THREE.Color();
+  for(let i=0;i<count;i++){
+    const s = centers[Math.floor(Math.random()*centers.length)];
+    const u=Math.random(),v=Math.random(),th=2*Math.PI*u,ph=Math.acos(2*v-1);
+    const r=s.r*Math.cbrt(Math.random());
+    pos[i*3]  =(s.x + r*Math.sin(ph)*Math.cos(th))*scale;
+    pos[i*3+1]=(s.y + r*Math.sin(ph)*Math.sin(th))*scale;
+    pos[i*3+2]=(s.z + r*Math.cos(ph))*scale;
+    c.set(PALETTE[Math.floor(Math.random()*PALETTE.length)]);
+    col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  geo.userData.basePos=pos.slice();   // remember original positions for pulse
+  geo.userData.velocities=null;
+  // normal blending (additive would wash out to white on the light background)
+  const mat=new THREE.PointsMaterial({size:0.07*scale,vertexColors:true,transparent:true,opacity:.95,
+    blending:THREE.NormalBlending,depthWrite:false});
+  return new THREE.Points(geo,mat);
+}
+
+function initCloud(){
+  const canvas=document.getElementById('cloud-canvas');
+  renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(60,1,.1,100);
+  camera.position.set(0,1,8);camera.lookAt(0,0,0);
+
+  cloudGroup=new THREE.Group();
+  cloudGroup.add(buildCloud(3000,1));
+  scene.add(cloudGroup);
+
+  fileGroup=new THREE.Group();
+  scene.add(fileGroup);
+
+  // soft white halo behind the cloud (gentle bloom on the pink backdrop)
+  const glow=new THREE.Mesh(new THREE.SphereGeometry(6,32,32),
+    new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.18,side:THREE.BackSide}));
+  scene.add(glow);
+
+  // faint violet "dust" instead of white stars (white is invisible on pink)
+  const sg=new THREE.BufferGeometry();const sp=new Float32Array(200*3);
+  for(let i=0;i<200;i++){sp[i*3]=(Math.random()-.5)*40;sp[i*3+1]=(Math.random()-.5)*40;sp[i*3+2]=(Math.random()-.5)*40;}
+  sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+  scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xC4B5FD,size:0.06,transparent:true,opacity:.55})));
+
+  resizeCloud();
+  animate();
+}
+
+function resizeCloud(){
+  const r=document.querySelector('.right').getBoundingClientRect();
+  renderer.setSize(r.width,r.height,false);
+  camera.aspect=r.width/r.height;camera.updateProjectionMatrix();
+}
+window.addEventListener('resize',()=>{if(renderer)resizeCloud();});
+
+// add a glowing node that orbits the cloud, one per uploaded file
+function addFileNode(){
+  const color=NODE_COLORS[fileGroup.children.length % NODE_COLORS.length];
+  const mesh=new THREE.Mesh(
+    new THREE.IcosahedronGeometry(0.22,0),
+    new THREE.MeshBasicMaterial({color,transparent:true,opacity:.95}));
+  const halo=new THREE.Mesh(
+    new THREE.SphereGeometry(0.34,16,16),
+    new THREE.MeshBasicMaterial({color,transparent:true,opacity:.18,blending:THREE.AdditiveBlending,depthWrite:false}));
+  mesh.add(halo);
+  mesh.userData={angle:Math.random()*Math.PI*2,radius:3.4,height:(Math.random()-.5)*1.4,
+                 speed:0.004+Math.random()*0.004,born:performance.now()};
+  fileGroup.add(mesh);
+  triggerPulse();
+}
+function removeFileNode(i){ if(fileGroup.children[i]) fileGroup.remove(fileGroup.children[i]); }
+function clearFileNodes(){ while(fileGroup.children.length) fileGroup.remove(fileGroup.children[0]); }
+function triggerPulse(){ pulse=1; }   // 1 -> decays to 0 in animate()
+
+function startDissolve(){
+  dissolving=true;dissolveStart=performance.now();
+  fileGroup.visible=false;
+  const g=cloudGroup.children[0].geometry;
+  const n=g.attributes.position.count;
+  const vel=new Float32Array(n*3);
+  for(let i=0;i<n*3;i++)vel[i]=(Math.random()-.5)*0.15;
+  g.userData.velocities=vel;
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  const t=performance.now()*0.001;
+  if(cloudGroup){
+    // parallax ease toward mouse
+    cloudGroup.rotation.y += 0.001 + (targetRotY-cloudGroup.rotation.y)*0.04;
+    cloudGroup.rotation.x += (targetRotX-cloudGroup.rotation.x)*0.04;
+    cloudGroup.position.y=Math.sin(t*0.5)*0.1;
+
+    // pulse: briefly expand particles outward from base positions, then settle
+    if(pulse>0.001 && !dissolving){
+      pulse*=0.92;
+      const g=cloudGroup.children[0].geometry, p=g.attributes.position.array, b=g.userData.basePos;
+      const k=1+pulse*0.25;
+      for(let i=0;i<p.length;i++) p[i]=b[i]*k;
+      g.attributes.position.needsUpdate=true;
+    }
+    if(dissolving){
+      const g=cloudGroup.children[0].geometry,p=g.attributes.position.array,v=g.userData.velocities;
+      for(let i=0;i<p.length;i++)p[i]+=v[i];
+      g.attributes.position.needsUpdate=true;
+      cloudGroup.children[0].material.opacity=Math.max(0,.9-(performance.now()-dissolveStart)/1500*.9);
+    }
+  }
+  if(fileGroup){
+    fileGroup.children.forEach(m=>{
+      m.userData.angle+=m.userData.speed;
+      const a=m.userData.angle,r=m.userData.radius;
+      m.position.set(Math.cos(a)*r, m.userData.height+Math.sin(t+a)*0.15, Math.sin(a)*r);
+      m.rotation.x+=0.01;m.rotation.y+=0.02;
+      const grow=Math.min(1,(performance.now()-m.userData.born)/400);
+      m.scale.setScalar(grow);
+    });
+  }
+  renderer.render(scene,camera);
+  if(miniRenderer){miniCloud.rotation.y+=0.004;miniRenderer.render(miniScene,miniCamera);}
+}
+
+function initMiniCloud(){
+  const canvas=document.getElementById('mini-cloud');
+  miniRenderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  miniRenderer.setSize(120,120,false);
+  miniScene=new THREE.Scene();
+  miniCamera=new THREE.PerspectiveCamera(60,1,.1,100);miniCamera.position.set(0,0,7);
+  miniCloud=buildCloud(700,0.5);miniScene.add(miniCloud);
+}
+
+// ====================== STATE / UI ======================
+let fileList=[], isDemo=false, lastResult=null;
+const $=id=>document.getElementById(id);
+
+$('agentRows').innerHTML=AGENTS.map(a=>
+  `<div class="agent-row"><span class="dot" id="dot-${a.key}"></span>${a.name}<span class="t" id="t-${a.key}"></span></div>`).join('');
+$('bars').innerHTML=AGENTS.map(a=>
+  `<div class="bar-wrap" style="color:${a.color}"><div class="bn">${a.name}</div><div class="bar"><span></span></div></div>`).join('');
+
+// ----- drop onto the cloud (the whole right panel) -----
+const rightPanel=$('rightPanel'), fileInput=$('file');
+rightPanel.addEventListener('dragover',e=>{e.preventDefault();rightPanel.classList.add('dragover');
+  $('heroTitle').textContent='Release to feed the cloud';});
+rightPanel.addEventListener('dragleave',e=>{if(e.relatedTarget&&rightPanel.contains(e.relatedTarget))return;
+  rightPanel.classList.remove('dragover');$('heroTitle').textContent='Point it at your cloud';});
+rightPanel.addEventListener('drop',e=>{e.preventDefault();rightPanel.classList.remove('dragover');
+  $('heroTitle').textContent='Point it at your cloud';
+  if(e.dataTransfer.files.length)addFiles(e.dataTransfer.files);});
+// click the cloud (but not the results area) to browse
+rightPanel.addEventListener('click',e=>{if($('results').contains(e.target))return;fileInput.click();});
+if($('browse'))$('browse').onclick=e=>{e.stopPropagation();fileInput.click();};
+fileInput.onchange=e=>{if(e.target.files.length)addFiles(e.target.files);};
+
+function addFiles(fl){
+  if(isDemo){isDemo=false;fileList=[];clearFileNodes();}
+  for(const f of fl){ fileList.push(f); addFileNode(); }
+  renderChips();
+  updateHero();
+  $('inspectBtn').disabled=false;
+}
+
+function renderChips(){
+  $('files').innerHTML=fileList.map((f,i)=>{
+    const c=PALETTE[i%PALETTE.length];
+    const sz=isDemo?'demo data':(f.size/1024).toFixed(1)+' KB';
+    return `<div class="chip"><span class="ic" style="background:${c}"></span>
+      <span class="nm">${f.name}</span><span style="color:#64748B">${sz}</span>
+      <span class="x" data-i="${i}">×</span></div>`;}).join('');
+  document.querySelectorAll('.chip .x').forEach(x=>x.onclick=()=>{
+    const i=+x.dataset.i; fileList.splice(i,1); removeFileNode(i);
+    if(isDemo&&fileList.length===0)isDemo=false;
+    renderChips(); updateHero();
+    $('inspectBtn').disabled=fileList.length===0;
+  });
+}
+
+function updateHero(){
+  if(fileList.length){
+    $('heroTitle').textContent='Ready to inspect';
+    $('heroSub').textContent=fileList.length+' file'+(fileList.length>1?'s':'')+' orbiting the cloud — hit Inspect';
+  }else{
+    $('heroTitle').textContent='Point it at your cloud';
+    $('heroSub').textContent='Drag your tfstate or asset inventory onto the cloud — or click it';
+  }
+}
+
+// demo: preload without running
+$('demoBtn').onclick=()=>{
+  isDemo=true; fileList=[{name:'demo-fintech.tfstate'}]; clearFileNodes(); addFileNode();
+  $('ctx').value='Fintech SaaS platform processing card payments and storing customer financial records for small businesses.';
+  renderChips(); updateHero(); $('inspectBtn').disabled=false;
+};
+
+// parallax from mouse over the right panel
+rightPanel.addEventListener('mousemove',e=>{
+  const r=rightPanel.getBoundingClientRect();
+  targetRotY=((e.clientX-r.left)/r.width-0.5)*0.6;
+  targetRotX=((e.clientY-r.top)/r.height-0.5)*0.4;
+});
+
+// ====================== RUN INSPECTION ======================
+$('inspectBtn').onclick=async(ev)=>{
+  ev.stopPropagation();
+  const btn=$('inspectBtn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Inspecting...';
+  $('pipe').style.display='block';
+  AGENTS.forEach(a=>{const d=$('dot-'+a.key);d.className='dot running';d.style.background=a.color;d.style.boxShadow='0 0 10px '+a.color;$('t-'+a.key).textContent='';});
+
+  startDissolve();
+  flashPurple();
+  setTimeout(()=>{$('hero').style.display='none';$('bars').style.display='flex';},1500);
+
+  const fd=new FormData();
+  fd.append('app_context',$('ctx').value);
+  if(isDemo || fileList.length===0){ fd.append('use_demo','true'); }
+  else { fileList.forEach(f=>fd.append('tfstate_file',f)); }
+
+  let data;
+  try{
+    const res=await fetch('/inspect',{method:'POST',body:fd});
+    data=await res.json();
+  }catch(err){
+    alert('Inspection failed: '+err);btn.disabled=false;btn.textContent='Inspect Infrastructure';return;
+  }
+  lastResult=data;
+  renderComplete(data);
+};
+
+function flashPurple(){
+  const f=$('flash');f.style.transition='none';f.style.opacity='0.15';
+  requestAnimationFrame(()=>{f.style.transition='opacity .8s';f.style.opacity='0';});
+}
+
+function renderComplete(data){
+  AGENTS.forEach((a,i)=>{
+    setTimeout(()=>{
+      const d=$('dot-'+a.key);d.className='dot done';d.style.background=a.color;d.style.boxShadow='0 0 8px '+a.color;
+      const t=(data.agent_timings&&data.agent_timings[a.key])||0;
+      $('t-'+a.key).textContent=t?t+'s':'';$('t-'+a.key).style.color=a.color;
+    },300+i*120);
+  });
+  setTimeout(()=>{const d=$('dot-synth');d.className='dot done';d.style.background='#E11D48';d.style.boxShadow='0 0 8px #E11D48';
+    $('t-synth').textContent='done';$('t-synth').style.color='#E11D48';},300+AGENTS.length*120+200);
+
+  setTimeout(()=>{
+    $('speed').style.display='flex';
+    $('speedFast').textContent=data.total_time+'s';
+    $('speedSlow').textContent=data.estimated_gpu_baseline_time+'s';
+    const x=(data.estimated_gpu_baseline_time/data.total_time).toFixed(1);
+    $('faster').style.display='block';$('faster').textContent=x+'x faster on Cerebras';
+  },300+AGENTS.length*120+400);
+
+  $('inspectBtn').innerHTML='Inspect Infrastructure';
+
+  setTimeout(()=>{
+    $('bars').style.display='none';
+    $('results').classList.add('show');$('results').style.display='block';
+    if(!miniRenderer)initMiniCloud();
+    populateResults(data);
+  },300+AGENTS.length*120+700);
+}
+
+// ====================== POPULATE RESULTS ======================
+function populateResults(data){
+  const s=data.synthesis||{};
+  $('execText').textContent=s.executive_summary||'';
+
+  const grid=$('lensGrid');grid.innerHTML='';
+  AGENTS.forEach(a=>{
+    const lens=data.lenses[a.key]||{};
+    const findings=lens.findings||[];
+    const preview=findings[0]?findings[0].finding:'No findings flagged.';
+    const div=document.createElement('div');
+    div.className='lens';div.style.setProperty('--c',a.color);
+    div.innerHTML=`<div class="nm">${a.name}</div><div class="cnt">${findings.length} flagged</div>
+      <div class="prev">${esc(preview)}</div>
+      <div class="findings"><table>${findings.map(f=>{
+        const pc=(f.priority||'').replace('Before Launch','Before');
+        return `<tr><td class="r">${esc(f.resource_name||'')}</td><td>${esc(f.finding||'')}<br><span style="color:var(--text2)">→ ${esc(f.what_gcp_recommends||'')}</span></td>
+        <td><span class="pri ${pc}">${esc(f.priority||'')}</span></td><td class="r">${esc(f.doc_reference||'')}</td></tr>`;}).join('')}</table></div>`;
+    div.onclick = (e) => {
+
+    e.stopPropagation();
+
+    document.querySelectorAll('.findings').forEach(f=>{
+        if(f !== div.querySelector('.findings')){
+            f.style.display='none';
+        }
+    });
+
+    const fd = div.querySelector('.findings');
+
+    fd.style.display =
+        fd.style.display === 'block'
+            ? 'none'
+            : 'block';
+
+    };
+    grid.appendChild(div);
+  });
+
+  const cross=s.cross_lens_findings||[];
+  $('crossBody').innerHTML=cross.length?cross.map(c=>
+    `<div class="item"><b>${esc(c.resource_name||'')}</b> — flagged by ${(c.lenses||[]).join(', ')}. ${esc(c.why_it_matters||'')}</div>`).join('')
+    :'<div class="item">No resources flagged by multiple lenses.</div>';
+
+  $('wellList').innerHTML=(s.what_you_built_well||[]).map(w=>`<li>${esc(w)}</li>`).join('');
+
+  const ap=s.action_plan||{};
+  $('planBody').innerHTML=
+    tier('Look at this now','now',ap.now)+
+    tier('Look at this before launch','bl',ap.before_launch)+
+    tier('Consider for the future','fu',ap.future);
+
+  const st=s.stride_overlay||[];
+  $('strideBody').innerHTML=st.length?st.map(x=>
+    `<div class="item"><span class="tag">${esc(x.stride_category||'')}</span><b>${esc(x.resource_name||'')}</b><br>${esc(x.note||'')}
+     <br><a href="${esc(x.doc_reference||'#')}" target="_blank" style="color:var(--sky);font-size:11px">${esc(x.doc_reference||'')}</a></div>`).join('')
+    :'<div class="item">No findings with a STRIDE dimension.</div>';
+
+  $('fallbackNote').textContent=data.used_fallback?'Showing bundled demo outlook (Cerebras key not detected).':'';
+}
+
+function tier(title,cls,items){
+  items=items||[];
+  return `<div class="tier ${cls}"><div class="th">${title}</div><ul>${items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div>`;
+}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+// ====================== EXPORTS ======================
+$('copyBtn').onclick=(e)=>{e.stopPropagation();navigator.clipboard.writeText(JSON.stringify(lastResult,null,2));$('copyBtn').textContent='Copied!';setTimeout(()=>$('copyBtn').textContent='Copy JSON',1200);};
+$('csvBtn').onclick=(e)=>{e.stopPropagation();
+  let rows=[['lens','resource','finding','suggests','priority','doc']];
+  AGENTS.forEach(a=>{(lastResult.lenses[a.key]?.findings||[]).forEach(f=>
+    rows.push([a.name,f.resource_name,f.finding,f.what_gcp_recommends,f.priority,f.doc_reference]));});
+  const csv=rows.map(r=>r.map(c=>'"'+String(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='readycheck-findings.csv';a.click();
+};
+$('printBtn').onclick=(e)=>{e.stopPropagation();window.print();};
+
+// ====================== BOOT ======================
+initCloud();
+
+document.addEventListener('click', () => {
+    document.querySelectorAll('.findings').forEach(f=>{
+        f.style.display='none';
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+[
+  {
+    "name": "//sqladmin.googleapis.com/projects/shopflow-prod/instances/prod-orders-db",
+    "assetType": "sqladmin.googleapis.com/Instance",
+    "resource": {
+      "discoveryName": "DatabaseInstance",
+      "location": "us-east1",
+      "data": {
+        "name": "prod-orders-db",
+        "databaseVersion": "POSTGRES_15",
+        "region": "us-east1",
+        "settings": {
+          "tier": "db-n1-standard-8",
+          "availabilityType": "ZONAL",
+          "backupConfiguration": { "enabled": true, "pointInTimeRecoveryEnabled": false },
+          "ipConfiguration": {
+            "ipv4Enabled": true,
+            "requireSsl": false,
+            "authorizedNetworks": [{ "name": "office", "value": "0.0.0.0/0" }]
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "//container.googleapis.com/projects/shopflow-prod/locations/us-east1-b/clusters/prod-app-cluster",
+    "assetType": "container.googleapis.com/Cluster",
+    "resource": {
+      "discoveryName": "Cluster",
+      "location": "us-east1-b",
+      "data": {
+        "name": "prod-app-cluster",
+        "location": "us-east1-b",
+        "locations": ["us-east1-b"],
+        "privateClusterConfig": { "enablePrivateNodes": false },
+        "workloadIdentityConfig": null,
+        "nodePools": [
+          { "name": "default-pool", "autoscaling": { "enabled": true, "minNodeCount": 1, "maxNodeCount": 5 } }
+        ]
+      }
+    }
+  },
+  {
+    "name": "//run.googleapis.com/projects/shopflow-prod/locations/us-east1/services/prod-checkout-api",
+    "assetType": "run.googleapis.com/Service",
+    "resource": {
+      "discoveryName": "Service",
+      "location": "us-east1",
+      "data": {
+        "metadata": { "name": "prod-checkout-api" },
+        "spec": {
+          "template": {
+            "metadata": {
+              "annotations": {
+                "autoscaling.knative.dev/minScale": "0",
+                "autoscaling.knative.dev/maxScale": "100"
+              }
+            },
+            "spec": { "containerConcurrency": 80, "timeoutSeconds": 300 }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "//storage.googleapis.com/prod-product-images",
+    "assetType": "storage.googleapis.com/Bucket",
+    "resource": {
+      "discoveryName": "Bucket",
+      "data": {
+        "name": "prod-product-images",
+        "location": "US",
+        "storageClass": "STANDARD",
+        "iamConfiguration": { "uniformBucketLevelAccess": { "enabled": false } },
+        "versioning": { "enabled": false }
+      }
+    }
+  },
+  {
+    "name": "//storage.googleapis.com/prod-db-backups",
+    "assetType": "storage.googleapis.com/Bucket",
+    "resource": {
+      "discoveryName": "Bucket",
+      "data": {
+        "name": "prod-db-backups",
+        "location": "us-east1",
+        "storageClass": "NEARLINE",
+        "iamConfiguration": { "uniformBucketLevelAccess": { "enabled": true } },
+        "versioning": { "enabled": true }
+      }
+    }
+  },
+  {
+    "name": "//pubsub.googleapis.com/projects/shopflow-prod/topics/prod-order-events",
+    "assetType": "pubsub.googleapis.com/Topic",
+    "resource": {
+      "discoveryName": "Topic",
+      "data": { "name": "projects/shopflow-prod/topics/prod-order-events", "messageRetentionDuration": null }
+    }
+  },
+  {
+    "name": "//bigquery.googleapis.com/projects/shopflow-prod/datasets/prod_analytics",
+    "assetType": "bigquery.googleapis.com/Dataset",
+    "resource": {
+      "discoveryName": "Dataset",
+      "location": "US",
+      "data": {
+        "datasetReference": { "datasetId": "prod_analytics" },
+        "location": "US",
+        "defaultTableExpirationMs": null
+      }
+    }
+  },
+  {
+    "name": "//compute.googleapis.com/projects/shopflow-prod/zones/us-east1-b/instances/prod-legacy-worker",
+    "assetType": "compute.googleapis.com/Instance",
+    "resource": {
+      "discoveryName": "Instance",
+      "location": "us-east1-b",
+      "data": {
+        "name": "prod-legacy-worker",
+        "machineType": "n1-standard-4",
+        "zone": "us-east1-b",
+        "scheduling": { "preemptible": false, "automaticRestart": true },
+        "status": "RUNNING"
+      }
+    }
+  },
+  {
+    "name": "//compute.googleapis.com/projects/shopflow-prod/global/firewalls/allow-all-ingress",
+    "assetType": "compute.googleapis.com/Firewall",
+    "resource": {
+      "discoveryName": "Firewall",
+      "data": {
+        "name": "allow-all-ingress",
+        "network": "default",
+        "direction": "INGRESS",
+        "sourceRanges": ["0.0.0.0/0"],
+        "allowed": [{ "IPProtocol": "all" }]
+      }
+    }
+  },
+  {
+    "name": "//storage.googleapis.com/shopflow-public-export",
+    "assetType": "storage.googleapis.com/Bucket",
+    "resource": {
+      "discoveryName": "Bucket",
+      "data": {
+        "name": "shopflow-public-export",
+        "location": "US",
+        "storageClass": "STANDARD",
+        "iamConfiguration": {
+          "uniformBucketLevelAccess": { "enabled": false },
+          "publicAccessPrevention": "inherited"
+        },
+        "versioning": { "enabled": false }
+      }
+    }
+  }
+]

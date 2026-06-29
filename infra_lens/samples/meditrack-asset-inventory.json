@@ -1,0 +1,181 @@
+[
+  {
+    "name": "//sqladmin.googleapis.com/projects/meditrack-prod/instances/patient-db",
+    "assetType": "sqladmin.googleapis.com/Instance",
+    "resource": {
+      "version": "v1beta4",
+      "discoveryName": "DatabaseInstance",
+      "location": "us-central1",
+      "data": {
+        "name": "patient-db",
+        "databaseVersion": "POSTGRES_14",
+        "region": "us-central1",
+        "settings": {
+          "tier": "db-n1-standard-4",
+          "availabilityType": "ZONAL",
+          "backupConfiguration": {
+            "enabled": true,
+            "pointInTimeRecoveryEnabled": false
+          },
+          "ipConfiguration": {
+            "ipv4Enabled": true,
+            "requireSsl": false
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "//container.googleapis.com/projects/meditrack-prod/locations/us-central1-a/clusters/telemetry-cluster",
+    "assetType": "container.googleapis.com/Cluster",
+    "resource": {
+      "discoveryName": "Cluster",
+      "location": "us-central1-a",
+      "data": {
+        "name": "telemetry-cluster",
+        "location": "us-central1-a",
+        "locations": ["us-central1-a"],
+        "currentNodeCount": 2,
+        "autoscaling": { "enableNodeAutoprovisioning": false },
+        "nodePools": [
+          { "name": "default-pool", "autoscaling": { "enabled": true, "minNodeCount": 1, "maxNodeCount": 3 } }
+        ],
+        "privateClusterConfig": { "enablePrivateNodes": false },
+        "workloadIdentityConfig": null
+      }
+    }
+  },
+  {
+    "name": "//run.googleapis.com/projects/meditrack-prod/locations/us-central1/services/ingest-api",
+    "assetType": "run.googleapis.com/Service",
+    "resource": {
+      "discoveryName": "Service",
+      "location": "us-central1",
+      "data": {
+        "metadata": { "name": "ingest-api" },
+        "spec": {
+          "template": {
+            "metadata": {
+              "annotations": {
+                "autoscaling.knative.dev/minScale": "0",
+                "autoscaling.knative.dev/maxScale": "50"
+              }
+            },
+            "spec": { "containerConcurrency": 250, "timeoutSeconds": 60 }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "//storage.googleapis.com/meditrack-patient-records",
+    "assetType": "storage.googleapis.com/Bucket",
+    "resource": {
+      "discoveryName": "Bucket",
+      "data": {
+        "name": "meditrack-patient-records",
+        "location": "US",
+        "storageClass": "STANDARD",
+        "iamConfiguration": { "uniformBucketLevelAccess": { "enabled": false } },
+        "versioning": { "enabled": false }
+      }
+    }
+  },
+  {
+    "name": "//storage.googleapis.com/meditrack-audit-logs",
+    "assetType": "storage.googleapis.com/Bucket",
+    "resource": {
+      "discoveryName": "Bucket",
+      "data": {
+        "name": "meditrack-audit-logs",
+        "location": "us-central1",
+        "storageClass": "COLDLINE",
+        "iamConfiguration": { "uniformBucketLevelAccess": { "enabled": true } },
+        "versioning": { "enabled": true },
+        "retentionPolicy": { "retentionPeriod": "31536000" }
+      }
+    }
+  },
+  {
+    "name": "//pubsub.googleapis.com/projects/meditrack-prod/topics/device-telemetry",
+    "assetType": "pubsub.googleapis.com/Topic",
+    "resource": {
+      "discoveryName": "Topic",
+      "data": {
+        "name": "projects/meditrack-prod/topics/device-telemetry",
+        "messageRetentionDuration": null
+      }
+    }
+  },
+  {
+    "name": "//bigquery.googleapis.com/projects/meditrack-prod/datasets/clinical_reports",
+    "assetType": "bigquery.googleapis.com/Dataset",
+    "resource": {
+      "discoveryName": "Dataset",
+      "location": "US",
+      "data": {
+        "datasetReference": { "datasetId": "clinical_reports" },
+        "location": "US",
+        "defaultTableExpirationMs": null
+      }
+    }
+  },
+  {
+    "name": "//cloudfunctions.googleapis.com/projects/meditrack-prod/locations/us-central1/functions/alert-dispatcher",
+    "assetType": "cloudfunctions.googleapis.com/CloudFunction",
+    "resource": {
+      "discoveryName": "CloudFunction",
+      "location": "us-central1",
+      "data": {
+        "name": "alert-dispatcher",
+        "entryPoint": "dispatch",
+        "runtime": "python311",
+        "availableMemoryMb": 256,
+        "timeout": "60s",
+        "serviceAccountEmail": "meditrack-prod@appspot.gserviceaccount.com",
+        "minInstances": 0
+      }
+    }
+  },
+  {
+    "name": "//compute.googleapis.com/projects/meditrack-prod/global/firewalls/allow-ssh-world",
+    "assetType": "compute.googleapis.com/Firewall",
+    "resource": {
+      "discoveryName": "Firewall",
+      "data": {
+        "name": "allow-ssh-world",
+        "network": "default",
+        "direction": "INGRESS",
+        "sourceRanges": ["0.0.0.0/0"],
+        "allowed": [{ "IPProtocol": "tcp", "ports": ["22"] }]
+      }
+    }
+  },
+  {
+    "name": "//compute.googleapis.com/projects/meditrack-prod/zones/us-central1-a/instances/legacy-ingest-vm",
+    "assetType": "compute.googleapis.com/Instance",
+    "resource": {
+      "discoveryName": "Instance",
+      "location": "us-central1-a",
+      "data": {
+        "name": "legacy-ingest-vm",
+        "machineType": "n1-standard-4",
+        "zone": "us-central1-a",
+        "scheduling": { "preemptible": false, "automaticRestart": true },
+        "status": "RUNNING"
+      }
+    }
+  },
+  {
+    "name": "//iam.googleapis.com/projects/meditrack-prod/serviceAccounts/ingest-sa@meditrack-prod.iam.gserviceaccount.com",
+    "assetType": "iam.googleapis.com/ServiceAccount",
+    "resource": {
+      "discoveryName": "ServiceAccount",
+      "data": {
+        "name": "ingest-sa",
+        "email": "ingest-sa@meditrack-prod.iam.gserviceaccount.com",
+        "displayName": "Telemetry ingest service account"
+      }
+    }
+  }
+]
